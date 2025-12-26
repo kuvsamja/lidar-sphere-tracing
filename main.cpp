@@ -10,7 +10,7 @@ int main(){
     World* world = new World();
 
     Camera camera(world);
-    camera.image_width = 400;
+    camera.image_width = 200;
     camera.aspect_ratio = 4. / 3;
     camera.initialize();
 
@@ -39,7 +39,7 @@ int main(){
     
     world->addSphere(new Sphere(vec3(-10, 0, 0), 1));
     world->addSphere(new Sphere(vec3(10, 0, 0), 1));
-    world->addSphere(new Sphere(vec3(0, 0, 10), 1));
+    world->   addBox(new Box(vec3(0, 0, 10), vec3(1, 2, 1)));
     world->addSphere(new Sphere(vec3(0, 0, -10), 1));
 
 

@@ -21,7 +21,9 @@ class Camera{
     double pixel_width;
     double pixel_height;
     
-    double max_spheres = 10;
+    double max_spheres = 100;
+    double sphere_detect_size = 0.1;
+
     World* world;
     
     double speed = 1;
@@ -51,24 +53,26 @@ class Camera{
         if(keys[SDL_SCANCODE_UP])
             angle_y += sensitivity;
 
+        double CS = cos(angle_x);
+        double SN = sin(angle_x);
+        
         if(keys[SDL_SCANCODE_W]){
-            camera_center[2] += speed*cos(angle_x);
-            camera_center[0] += speed*sin(angle_x);
+            camera_center[2] += speed*CS;
+            camera_center[0] += speed*SN;
         }
         if(keys[SDL_SCANCODE_S]){
-            camera_center[2] -= speed*cos(angle_x);
-            camera_center[0] -= speed*sin(angle_x);
+            camera_center[2] -= speed*CS;
+            camera_center[0] -= speed*SN;
         }
         if(keys[SDL_SCANCODE_A]){
-            camera_center[2] += speed*sin(angle_x);
-            camera_center[0] -= speed*cos(angle_x);
+            camera_center[2] += speed*SN;
+            camera_center[0] -= speed*CS;
         }
         if(keys[SDL_SCANCODE_D]){
-            camera_center[2] -= speed*sin(angle_x);
-            camera_center[0] += speed*cos(angle_x);
+            camera_center[2] -= speed*SN;
+            camera_center[0] += speed*CS;
         }   
         angle_y = fmod(angle_y, 2*PI);
-
         angle_x = fmod(angle_x, 2*PI);
 
     }
@@ -97,22 +101,19 @@ class Camera{
 
     void render(SDL_Renderer* renderer){
         vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
+        vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
 
         for(int i = 0; i < image_width; i++){
             for(int j = 0; j < image_height; j++){
                 // calculate pixel locations in 3d space
-                vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, 0, 0) + vec3(0, j*pixel_height, 0);
-                pixel_loc += 0.5*vec3(pixel_width, pixel_height, 0);
+                vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
 
                 vec3 translated_pixel = pixel_loc - camera_center;
 
                 translated_pixel = rotateX(translated_pixel, angle_y);
                 translated_pixel = rotateY(translated_pixel, angle_x);
                 
-                pixel_loc = camera_center + translated_pixel;
-
-                auto ray_direction = pixel_loc - camera_center;
-                ray r(camera_center, ray_direction);
+                ray r(camera_center, translated_pixel);
 
                 vec3 pixel_color = sphereCast(r, *world);
             
@@ -123,20 +124,18 @@ class Camera{
     }
 
     vec3 sphereCast(ray r, World world){
-        int length = 0;
+        double length = 0;
         
         length = world.minDist(r.origin());
-        r.setRayLength(length);
+        r.direction() = unit_vector(r.direction());
 
         for(int sphere_count = 0; sphere_count < max_spheres; sphere_count++){
-            sphere_count++;
-            double dist_to_obj = world.minDist(r.direction() + r.origin());
+            double dist_to_obj = world.minDist(r.direction()*length + r.origin());
             
-            if(dist_to_obj < 1){
+            if(dist_to_obj < sphere_detect_size){
                 return vec3(255, 0, 0);
             }
             length += dist_to_obj;
-            r.setRayLength(length);
         }
 
         return vec3(180, 200, 255);

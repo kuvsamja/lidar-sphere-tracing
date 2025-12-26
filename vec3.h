@@ -2,7 +2,7 @@
 #define VEC3_H
 
 #include <cmath>
-#include <iostream>
+#include <bits/stdc++.h>
 
 class vec3 {
   public:
@@ -94,6 +94,18 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
+}
+
+inline vec3 abs(const vec3& v) {
+    return vec3(std::abs(v.x()), std::abs(v.y()), std::abs(v.z()));
+}
+
+inline vec3 max(const vec3& a, const vec3& b) {
+    return vec3(
+        std::max(a.x(), b.x()),
+        std::max(a.y(), b.y()),
+        std::max(a.z(), b.z())
+    );
 }
 
 #endif
