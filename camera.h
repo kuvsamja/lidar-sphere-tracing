@@ -212,10 +212,9 @@ class Camera{
             
             length += dist_to_obj;
         }
-        
+
         if(dist_to_obj < sphere_detect_size){
             return r.origin() + r.direction()*length;
-            // TODO: make it go after detecting a collition for improved accuracy
         }
 
         vec3 intersection = r.direction()*length + r.origin();
