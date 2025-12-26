@@ -29,7 +29,7 @@ class Camera{
     double speed = 1;
     double sensitivity = 0.1;
 
-    std::vector<vec3> lidar_points;
+    std::deque<vec3> lidar_points;
     uint64_t max_lidar_points = 200000;
 
     Camera(World* world){
@@ -172,7 +172,7 @@ class Camera{
                 if(lidar_point.is_null == 0){
                     lidar_points.push_back(lidar_point);
                     if((uint64_t)lidar_points.size() > max_lidar_points){
-                        lidar_points.erase(lidar_points.begin());
+                        lidar_points.pop_front();
                     }
                 }
             }
