@@ -10,7 +10,7 @@ int main(){
     World* world = new World();
 
     Camera camera(world);
-    camera.image_width = 200;
+    camera.image_width = 1000;
     camera.aspect_ratio = 4. / 3;
     camera.initialize();
 
@@ -56,18 +56,19 @@ int main(){
         SDL_RenderClear(renderer);
 
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
-        camera.move(keys);
-        camera.render(renderer);
+        camera.input(keys);
+        camera.renderLidar(renderer);
+        // camera.render(renderer);
 
 
-
-        SDL_RenderPresent(renderer);   // show frame
-        // SDL_Delay(16);                 // avoid maxing CPU
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
     }
     
     
-    delete world;
     
+    delete world;
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

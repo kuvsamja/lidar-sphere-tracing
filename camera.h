@@ -28,13 +28,17 @@ class Camera{
     
     double speed = 1;
     double sensitivity = 0.1;
+
+    std::vector<vec3> lidar_points;
+    uint64_t max_lidar_points = 200000;
+
     Camera(World* world){
         this->world = world;
     }
     // initialize the viewport
     void initialize(){
         image_height = (int)(image_width / aspect_ratio);
-        viewport_width = focal_length*std::tan(fov/2);
+        viewport_width = 2*focal_length*std::tan(fov/2);
         viewport_height = viewport_width / aspect_ratio;
         pixel_width = viewport_width / image_width;
         pixel_height = viewport_height / image_height;
@@ -43,7 +47,7 @@ class Camera{
     }
 
     // camera movement
-    void move(const Uint8* keys){
+    void input(const Uint8* keys){
         if(keys[SDL_SCANCODE_LEFT])
             angle_x -= sensitivity;
         if(keys[SDL_SCANCODE_RIGHT])
@@ -71,10 +75,19 @@ class Camera{
         if(keys[SDL_SCANCODE_D]){
             camera_center[2] -= speed*SN;
             camera_center[0] += speed*CS;
-        }   
+        }
+        if(keys[SDL_SCANCODE_SPACE]){
+            camera_center[1] -= speed;
+        }
+        if(keys[SDL_SCANCODE_LSHIFT]){
+            camera_center[1] += speed;
+        }
         angle_y = fmod(angle_y, 2*PI);
         angle_x = fmod(angle_x, 2*PI);
 
+        if(keys[SDL_SCANCODE_RETURN]){
+            castLidarRay();
+        }
     }
 
     // rotation around a point
@@ -105,7 +118,46 @@ class Camera{
 
         for(int i = 0; i < image_width; i++){
             for(int j = 0; j < image_height; j++){
-                // calculate pixel locations in 3d space
+                renderPixel(renderer, i, j, pixel_00_not_rotated, half_pixel_offset);
+
+            }
+        }
+    }
+
+    void renderLidar(SDL_Renderer* renderer){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
+        for(vec3 point:lidar_points){
+            vec3 v = point - camera_center;
+            
+            v = rotateY(v, -angle_x);
+            v = rotateX(v, -angle_y);
+
+            if (v.z() <= 1e-6) continue;
+
+            double x_img = (focal_length * v.x()) / v.z();
+            double y_img = (focal_length * v.y()) / v.z();
+
+            int screen_x = (int)(image_width  / 2 + x_img / pixel_width);
+            int screen_y = (int)(image_height / 2 + y_img / pixel_height);
+
+            if (screen_x < 0 || screen_x >= image_width || screen_y < 0 || screen_y >= image_height)
+                continue;
+            
+            SDL_RenderDrawPoint(renderer, screen_x, screen_y);
+        }
+
+    }
+
+    void castLidarRay(){
+
+        vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
+        vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
+
+        for(int i = 20; i < image_width - 20; i++){
+            for(int j = 10; j < image_height - 10; j++){
+                if((int)((double)rand() / ((double)RAND_MAX / 10)) != 3)
+                    continue;
+
                 vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
 
                 vec3 translated_pixel = pixel_loc - camera_center;
@@ -115,12 +167,37 @@ class Camera{
                 
                 ray r(camera_center, translated_pixel);
 
-                vec3 pixel_color = sphereCast(r, *world);
-            
-                SDL_SetRenderDrawColor(renderer, pixel_color[0], pixel_color[1], pixel_color[2], 0x1);
-                SDL_RenderDrawPoint(renderer, i, j);
+                vec3 lidar_point = sphereCast(r, *world);
+
+                if(lidar_point.is_null == 0){
+                    lidar_points.push_back(lidar_point);
+                    if((uint64_t)lidar_points.size() > max_lidar_points){
+                        lidar_points.erase(lidar_points.begin());
+                    }
+                }
             }
         }
+        
+        
+
+        
+    }
+    void renderPixel(SDL_Renderer* renderer, int x, int y, vec3 pixel_00_not_rotated, vec3 half_pixel_offset){
+        // calculate pixel locations in 3d space
+        vec3 pixel_loc = pixel_00_not_rotated + vec3(x*pixel_width, y*pixel_height, 0) + half_pixel_offset;
+
+        vec3 translated_pixel = pixel_loc - camera_center;
+
+        translated_pixel = rotateX(translated_pixel, angle_y);
+        translated_pixel = rotateY(translated_pixel, angle_x);
+        
+        ray r(camera_center, translated_pixel);
+        if(sphereCast(r, *world).is_null == 0){
+
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
+    
     }
 
     vec3 sphereCast(ray r, World world){
@@ -133,11 +210,15 @@ class Camera{
             double dist_to_obj = world.minDist(r.direction()*length + r.origin());
             
             if(dist_to_obj < sphere_detect_size){
-                return vec3(255, 0, 0);
+                return r.origin() + r.direction()*length;
+                // TODO: make it go after detecting a collition for improved accuracy
             }
             length += dist_to_obj;
         }
 
-        return vec3(180, 200, 255);
+
+        vec3 intersection = r.direction()*length + r.origin();
+        intersection.is_null = 1;
+        return intersection;
     }
 };
