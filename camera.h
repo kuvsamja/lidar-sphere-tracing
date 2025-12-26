@@ -26,11 +26,11 @@ class Camera{
 
     World* world;
     
-    double speed = 1;
+    double speed = 5;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
-    uint64_t max_lidar_points = 200000;
+    uint64_t max_lidar_points = 2000000;
 
     Camera(World* world){
         this->world = world;
@@ -125,7 +125,7 @@ class Camera{
     }
 
     void renderLidar(SDL_Renderer* renderer){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0x1);
         for(vec3 point:lidar_points){
             vec3 v = point - camera_center;
             
@@ -155,7 +155,7 @@ class Camera{
 
         for(int i = 20; i < image_width - 20; i++){
             for(int j = 10; j < image_height - 10; j++){
-                if((int)((double)rand() / ((double)RAND_MAX / 10)) != 3)
+                if((int)((double)rand() / ((double)RAND_MAX / 20)) != 3)
                     continue;
 
                 vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
