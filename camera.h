@@ -51,15 +51,22 @@ class Camera{
         if(keys[SDL_SCANCODE_UP])
             angle_y += sensitivity;
 
-        if(keys[SDL_SCANCODE_W])
-            camera_center[2] += speed;
-        if(keys[SDL_SCANCODE_S])
-            camera_center[2] -= speed;
-        if(keys[SDL_SCANCODE_A])
-            camera_center[0] -= speed;
-        if(keys[SDL_SCANCODE_D])
-            camera_center[0] += speed;
-            
+        if(keys[SDL_SCANCODE_W]){
+            camera_center[2] += speed*cos(angle_x);
+            camera_center[0] += speed*sin(angle_x);
+        }
+        if(keys[SDL_SCANCODE_S]){
+            camera_center[2] -= speed*cos(angle_x);
+            camera_center[0] -= speed*sin(angle_x);
+        }
+        if(keys[SDL_SCANCODE_A]){
+            camera_center[2] += speed*sin(angle_x);
+            camera_center[0] -= speed*cos(angle_x);
+        }
+        if(keys[SDL_SCANCODE_D]){
+            camera_center[2] -= speed*sin(angle_x);
+            camera_center[0] += speed*cos(angle_x);
+        }   
         angle_y = fmod(angle_y, 2*PI);
 
         angle_x = fmod(angle_x, 2*PI);
@@ -132,6 +139,6 @@ class Camera{
             r.setRayLength(length);
         }
 
-        return vec3(200, 200, 255);
+        return vec3(180, 200, 255);
     }
 };
