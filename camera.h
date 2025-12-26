@@ -205,17 +205,18 @@ class Camera{
         
         length = world.minDist(r.origin());
         r.direction() = unit_vector(r.direction());
-
+        double dist_to_obj;
         for(int sphere_count = 0; sphere_count < max_spheres; sphere_count++){
-            double dist_to_obj = world.minDist(r.direction()*length + r.origin());
+            dist_to_obj = world.minDist(r.direction()*length + r.origin());
             
-            if(dist_to_obj < sphere_detect_size){
-                return r.origin() + r.direction()*length;
-                // TODO: make it go after detecting a collition for improved accuracy
-            }
+            
             length += dist_to_obj;
         }
-
+        
+        if(dist_to_obj < sphere_detect_size){
+            return r.origin() + r.direction()*length;
+            // TODO: make it go after detecting a collition for improved accuracy
+        }
 
         vec3 intersection = r.direction()*length + r.origin();
         intersection.is_null = 1;
