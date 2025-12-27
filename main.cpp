@@ -58,7 +58,7 @@ int main(){
     // world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
     // world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
     // world->addSphere(new Sphere(vec3(60, -100, 0), 10));
-    world->addMandelbulb(new MandelBulb());
+    world->addMandelbulb(new MandelBulb(vec3(0, 0, 0), 8,  7, 3000));
 
 
     int running = 1;
@@ -90,7 +90,6 @@ int main(){
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
-        std::clog << "a";
         SDL_Delay(16);
     }
     

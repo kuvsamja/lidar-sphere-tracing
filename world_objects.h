@@ -39,11 +39,12 @@ class MandelBulb{
     double bailout;
     int max_iterations;
   public:
-    MandelBulb(){
-        c = vec3(0, 0, 0);
-        power = 8;
-        bailout = 7;
-        max_iterations = 3000;
+    MandelBulb(vec3 center, double power, double bailout, double max_iterations){
+
+        this->c = center;
+        this->power = power;
+        this->bailout = bailout;
+        this->max_iterations = max_iterations;
     }
 
     double pointMandelbulbDist(vec3 point){
@@ -55,17 +56,14 @@ class MandelBulb{
             r = z.length();
             if(r > bailout) break;
             
-            // Convert to polar coordinates
             double theta = acos(z.z() / r);
             double phi = atan2(z.y(), z.x());
             dr = pow(r, power - 1.0) * power * dr + 1.0;
             
-            // Scale and rotate the point
             double zr = pow(r, power);
             theta = theta * power;
             phi = phi * power;
             
-            // Convert back to cartesian coordinates
             z = zr * vec3(sin(theta) * cos(phi), 
                          sin(theta) * sin(phi), 
                          cos(theta));
