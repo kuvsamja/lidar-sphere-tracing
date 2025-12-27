@@ -15,7 +15,7 @@ class Camera{
     double angle_x = 0;
     double angle_y = 0;
 
-    double image_height;
+    int image_height;
     double viewport_width;
     double viewport_height;
     double pixel_width;
@@ -26,11 +26,11 @@ class Camera{
 
     World* world;
     
-    double speed = 5;
+    double speed = 1;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
-    uint64_t max_lidar_points = 2000000;
+    uint64_t max_lidar_points = 200000;
 
     Camera(World* world){
         this->world = world;
@@ -112,20 +112,20 @@ class Camera{
     }
 
 
-    void render(SDL_Renderer* renderer){
+    void render(uint32_t* framebuffer){
         vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
         vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
 
         for(int i = 0; i < image_width; i++){
             for(int j = 0; j < image_height; j++){
-                renderPixel(renderer, i, j, pixel_00_not_rotated, half_pixel_offset);
+                renderPixel(framebuffer, i, j, pixel_00_not_rotated, half_pixel_offset);
 
             }
         }
     }
 
-    void renderLidar(SDL_Renderer* renderer){
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0x1);
+    void renderLidar(uint32_t* framebuffer){
+        // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0x1);
         for(vec3 point:lidar_points){
             vec3 v = point - camera_center;
             
@@ -143,7 +143,8 @@ class Camera{
             if (screen_x < 0 || screen_x >= image_width || screen_y < 0 || screen_y >= image_height)
                 continue;
             
-            SDL_RenderDrawPoint(renderer, screen_x, screen_y);
+            // SDL_RenderDrawPoint(renderer, screen_x, screen_y);
+            framebuffer[screen_x + image_width*screen_y] = 0xFFFFFFFF;
         }
 
     }
@@ -182,7 +183,7 @@ class Camera{
 
         
     }
-    void renderPixel(SDL_Renderer* renderer, int x, int y, vec3 pixel_00_not_rotated, vec3 half_pixel_offset){
+    void renderPixel(uint32_t* framebuffer, int x, int y, vec3 pixel_00_not_rotated, vec3 half_pixel_offset){
         // calculate pixel locations in 3d space
         vec3 pixel_loc = pixel_00_not_rotated + vec3(x*pixel_width, y*pixel_height, 0) + half_pixel_offset;
 
@@ -194,8 +195,10 @@ class Camera{
         ray r(camera_center, translated_pixel);
         if(sphereCast(r, *world).is_null == 0){
 
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
-            SDL_RenderDrawPoint(renderer, x, y);
+            // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
+            // SDL_RenderDrawPoint(renderer, x, y);
+            framebuffer[x + image_width*y] = 0xFFFFFFFF;
+            return;
         }
     
     }
