@@ -32,6 +32,49 @@ class Sphere{
     }
 };
 
+class MandelBulb{
+  private:
+    vec3 c;
+    double power;
+    double bailout;
+    int max_iterations;
+  public:
+    MandelBulb(){
+        c = vec3(0, 0, 0);
+        power = 8;
+        bailout = 7;
+        max_iterations = 3000;
+    }
+
+    double pointMandelbulbDist(vec3 point){
+        vec3 z = point - c;
+        double dr = 1.0;
+        double r = 0.0;
+        
+        for(int i = 0; i < max_iterations; i++){
+            r = z.length();
+            if(r > bailout) break;
+            
+            // Convert to polar coordinates
+            double theta = acos(z.z() / r);
+            double phi = atan2(z.y(), z.x());
+            dr = pow(r, power - 1.0) * power * dr + 1.0;
+            
+            // Scale and rotate the point
+            double zr = pow(r, power);
+            theta = theta * power;
+            phi = phi * power;
+            
+            // Convert back to cartesian coordinates
+            z = zr * vec3(sin(theta) * cos(phi), 
+                         sin(theta) * sin(phi), 
+                         cos(theta));
+            z = z + (point - c);
+        }
+        
+        return 0.5 * log(r) * r / dr;
+    }
+};
 
 class Box{ // Axis Aligned Box
   private:
@@ -62,6 +105,7 @@ class World{
   private:
     std::vector<Sphere*> world_spheres;
     std::vector<Box*> world_boxes;
+    std::vector<MandelBulb*> world_mandelbulbs;
   public:
     void addSphere(Sphere* sphere){
         world_spheres.push_back(sphere);
@@ -69,6 +113,10 @@ class World{
     void addBox(Box* box){
         world_boxes.push_back(box);
     }
+    void addMandelbulb(MandelBulb* mandelbulb){
+        world_mandelbulbs.push_back(mandelbulb);
+    }
+    
 
     double minDist(vec3 point){
         double min_dist = 999;
@@ -85,6 +133,11 @@ class World{
                 min_dist = dist_to_box;
         }
 
+        for(MandelBulb* mandelbulb:world_mandelbulbs){
+            double dist_to_bulb = mandelbulb->pointMandelbulbDist(point);
+            if(dist_to_bulb < min_dist)
+                min_dist = dist_to_bulb;
+        }
         return min_dist;
     }
 

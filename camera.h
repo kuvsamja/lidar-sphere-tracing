@@ -26,11 +26,11 @@ class Camera{
 
     World* world;
     
-    double speed = 1;
+    double speed = 0.01;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
-    uint64_t max_lidar_points = 200000;
+    uint64_t max_lidar_points = 500000;
     int lidar_density = 1000; // bigger number, less density
 
     Camera(World* world){
@@ -155,8 +155,8 @@ class Camera{
         vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
         vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
 
-        for(int i = 0; i < image_width; i++){
-            for(int j = 0; j < image_height; j++){
+        for(int i = 0; i < image_width-0; i++){
+            for(int j = 0; j < image_height-0; j++){
                 if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
                     continue;
 

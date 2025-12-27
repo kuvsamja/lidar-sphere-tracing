@@ -13,7 +13,7 @@ int main(){
     camera.image_width = 1000;
     camera.aspect_ratio = 4. / 3;
     camera.initialize();
-    double window_scale = 4;
+    double window_scale = 1;
 
     SDL_Renderer* renderer = NULL;
         
@@ -53,11 +53,12 @@ int main(){
 
     // todo: fix spheres not drawing
     
-    world->addSphere(new Sphere(vec3(-10, 0, 0), 1));
-    world->addSphere(new Sphere(vec3(10, 0, 0), 1));
-    world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
-    world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
-    world->addSphere(new Sphere(vec3(60, -100, 0), 10));
+    // world->addSphere(new Sphere(vec3(0, 0, 10), 1));
+    // world->addSphere(new Sphere(vec3(10, 0, 0), 1));
+    // world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
+    // world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
+    // world->addSphere(new Sphere(vec3(60, -100, 0), 10));
+    world->addMandelbulb(new MandelBulb());
 
 
     int running = 1;
@@ -89,6 +90,7 @@ int main(){
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
+        std::clog << "a";
         SDL_Delay(16);
     }
     
