@@ -109,4 +109,12 @@ inline vec3 max(const vec3& a, const vec3& b) {
     );
 }
 
+inline vec3 fmod(const vec3& v, double x){
+    return vec3(
+        fmod(v[0], x),
+        fmod(v[1], x),
+        fmod(v[2], x)
+    );
+}
+
 #endif
