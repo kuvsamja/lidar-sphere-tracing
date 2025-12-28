@@ -1,5 +1,5 @@
 #include "vec3.h"
-#include <bits/stdc++.h>
+#include <iostream>
 
 inline double dist(vec3 a, vec3 b){
     return (a - b).length();
@@ -38,17 +38,19 @@ class MandelBulb{
     double power;
     double bailout;
     int max_iterations;
+    double scale;
   public:
-    MandelBulb(vec3 center, double power, double bailout, double max_iterations){
+    MandelBulb(vec3 center, double scale, double power, double bailout, double max_iterations){
 
         this->c = center;
+        this->scale = scale;
         this->power = power;
         this->bailout = bailout;
         this->max_iterations = max_iterations;
     }
 
     double pointMandelbulbDist(vec3 point){
-        vec3 z = point - c;
+        vec3 z = (point - c) / scale;
         double dr = 1.0;
         double r = 0.0;
         
@@ -67,10 +69,10 @@ class MandelBulb{
             z = zr * vec3(sin(theta) * cos(phi), 
                          sin(theta) * sin(phi), 
                          cos(theta));
-            z = z + (point - c);
+            z = z + (point - c) / scale;
         }
         
-        return 0.5 * log(r) * r / dr;
+        return 0.5 * log(r) * r / dr * scale;
     }
 };
 
