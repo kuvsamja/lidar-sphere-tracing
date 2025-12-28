@@ -1,3 +1,4 @@
+// #include </opt/homebrew/include/SDL2/SDL.h>
 #include <SDL2/SDL.h>
 #include "vec3.h"
 #include "ray.h"
@@ -26,12 +27,12 @@ class Camera{
 
     World* world;
     
-    double speed = 0.05;
+    double speed = 1;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
     uint64_t max_lidar_points = 500000;
-    int lidar_density = 1; // bigger number, less density
+    int lidar_density = 1000; // bigger number, less density
 
     Camera(World* world){
         this->world = world;
@@ -145,7 +146,7 @@ class Camera{
                 continue;
             
             // SDL_RenderDrawPoint(renderer, screen_x, screen_y);
-            framebuffer[screen_x + image_width*screen_y] = 0xFFFFFFFF;
+            framebuffer[screen_x + image_width*screen_y] = 0xFFFF0000;
         }
 
     }
@@ -157,8 +158,8 @@ class Camera{
 
         for(int i = 0; i < image_width-0; i++){
             for(int j = 0; j < image_height-0; j++){
-                // if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
-                //     continue;
+                if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
+                    continue;
 
                 vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
 
