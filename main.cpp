@@ -10,11 +10,11 @@ int main(){
     World* world = new World();
 
     Camera camera(world);
-    camera.image_width = 200;
+    camera.image_width = 1000;
     camera.aspect_ratio = 4. / 3;
     camera.camera_center = vec3(0, 0, -1.5);
     camera.initialize();
-    double window_scale = 5;
+    double window_scale = 1;
 
     SDL_Renderer* renderer = NULL;
         
@@ -78,8 +78,8 @@ int main(){
 
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
         camera.input(keys);
-        // camera.renderLidar(framebuffer);
-        camera.render(framebuffer);
+        camera.renderLidar(framebuffer);
+        // camera.render(framebuffer);
 
         SDL_UpdateTexture(
             texture,

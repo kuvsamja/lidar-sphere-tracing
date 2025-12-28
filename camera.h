@@ -22,16 +22,16 @@ class Camera{
     double pixel_height;
     
     double max_spheres = 100;
-    double sphere_detect_size = 0.0001;
+    double sphere_detect_size = 0.001;
 
     World* world;
     
-    double speed = 0.1;
+    double speed = 0.05;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
     uint64_t max_lidar_points = 500000;
-    int lidar_density = 1000; // bigger number, less density
+    int lidar_density = 1; // bigger number, less density
 
     Camera(World* world){
         this->world = world;
@@ -157,8 +157,8 @@ class Camera{
 
         for(int i = 0; i < image_width-0; i++){
             for(int j = 0; j < image_height-0; j++){
-                if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
-                    continue;
+                // if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
+                //     continue;
 
                 vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
 
@@ -201,7 +201,11 @@ class Camera{
             // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
             // SDL_RenderDrawPoint(renderer, x, y);
             // framebuffer[x + image_width*y] = 0xFF + 0x00111111*step_count;
-            framebuffer[x + image_width*y] = 0xFF000000 + 0x00020202*step_count;
+            if(0x00030303*step_count > 0x0FFFFFF){
+                framebuffer[x + image_width*y] = 0xFF000000;
+                return;
+            }
+            framebuffer[x + image_width*y] = 0xFF000000 + 0x00FFFFFF - 0x00030303*step_count;
             return;
         }
     
