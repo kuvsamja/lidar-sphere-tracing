@@ -1,5 +1,7 @@
+// #include </opt/homebrew/include/SDL2/SDL.h>
 #include <SDL2/SDL.h>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
 #include <cmath>
 #include "vec3.h"
 #include "camera.h"
@@ -20,7 +22,7 @@ int main(){
         
     SDL_Window* window = NULL;
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     uint32_t* framebuffer;
     framebuffer = new uint32_t[camera.image_width * camera.image_height];
@@ -54,12 +56,12 @@ int main(){
 
     // todo: fix spheres not drawing
     
-    // world->addSphere(new Sphere(vec3(0, 0, 10), 1));
-    // world->addSphere(new Sphere(vec3(10, 0, 0), 1));
-    // world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
-    // world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
-    // world->addSphere(new Sphere(vec3(60, -100, 0), 10));
-    world->addMandelbulb(new MandelBulb(vec3(0, 0, 0), 8,  7, 100));
+    world->addSphere(new Sphere(vec3(0, 0, 10), 10));
+    world->addSphere(new Sphere(vec3(10, 0, 0), 10));
+    world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
+    world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
+    world->addSphere(new Sphere(vec3(60, -100, 0), 10));
+    world->addMandelbulb(new MandelBulb(vec3(0, -20, 0), 10, 8,  10, 10));
 
 
     int running = 1;
@@ -78,8 +80,8 @@ int main(){
 
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
         camera.input(keys);
-        camera.renderLidar(framebuffer);
         // camera.render(framebuffer);
+        camera.renderLidar(framebuffer);
 
         SDL_UpdateTexture(
             texture,
