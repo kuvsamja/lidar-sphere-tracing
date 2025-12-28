@@ -10,10 +10,11 @@ int main(){
     World* world = new World();
 
     Camera camera(world);
-    camera.image_width = 1000;
+    camera.image_width = 200;
     camera.aspect_ratio = 4. / 3;
+    camera.camera_center = vec3(0, 0, -1.5);
     camera.initialize();
-    double window_scale = 1;
+    double window_scale = 5;
 
     SDL_Renderer* renderer = NULL;
         
@@ -58,7 +59,7 @@ int main(){
     // world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
     // world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
     // world->addSphere(new Sphere(vec3(60, -100, 0), 10));
-    world->addMandelbulb(new MandelBulb(vec3(0, 0, 0), 8,  7, 3000));
+    world->addMandelbulb(new MandelBulb(vec3(0, 0, 0), 8,  7, 100));
 
 
     int running = 1;
@@ -77,8 +78,8 @@ int main(){
 
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
         camera.input(keys);
-        camera.renderLidar(framebuffer);
-        // camera.render(framebuffer);
+        // camera.renderLidar(framebuffer);
+        camera.render(framebuffer);
 
         SDL_UpdateTexture(
             texture,
@@ -86,7 +87,8 @@ int main(){
             framebuffer,
             camera.image_width * sizeof(uint32_t)
         );
-
+        
+        std::clog << "a";
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);

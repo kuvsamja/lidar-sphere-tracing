@@ -22,11 +22,11 @@ class Camera{
     double pixel_height;
     
     double max_spheres = 100;
-    double sphere_detect_size = 0.1;
+    double sphere_detect_size = 0.0001;
 
     World* world;
     
-    double speed = 0.01;
+    double speed = 0.1;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
@@ -194,15 +194,47 @@ class Camera{
         translated_pixel = rotateY(translated_pixel, angle_x);
         
         ray r(camera_center, translated_pixel);
-        if(sphereCast(r, *world).is_null == 0){
 
+        int step_count = sphereCastOcclusion(r, *world);
+        if(step_count != 0){
+            // std::clog << step_count;
             // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0x1);
             // SDL_RenderDrawPoint(renderer, x, y);
-            framebuffer[x + image_width*y] = 0xFFFFFFFF;
+            // framebuffer[x + image_width*y] = 0xFF + 0x00111111*step_count;
+            framebuffer[x + image_width*y] = 0xFF000000 + 0x00020202*step_count;
             return;
         }
     
     }
+
+
+    int sphereCastOcclusion(ray r, World world){
+        double length = 0;
+        int steps = 0;
+        length = world.minDist(r.origin());
+        r.direction() = unit_vector(r.direction());
+        double dist_to_obj;
+        
+        for(int sphere_count = 0; sphere_count < max_spheres; sphere_count++){
+            dist_to_obj = world.minDist(r.direction()*length + r.origin());
+            
+            
+            steps++;
+            if(dist_to_obj < sphere_detect_size){
+                return steps;
+            }
+            length += dist_to_obj;
+        }
+
+        // if(dist_to_obj < sphere_detect_size){
+        //     return steps;
+        // }
+
+        // vec3 intersection = r.direction()*length + r.origin();
+        // intersection.is_null = 1;
+        return 0;
+    }
+
 
     vec3 sphereCast(ray r, World world){
         double length = 0;
