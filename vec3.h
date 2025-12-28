@@ -2,7 +2,8 @@
 #define VEC3_H
 
 #include <cmath>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
 
 class vec3 {
   public:
