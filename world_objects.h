@@ -99,13 +99,31 @@ class Box{ // Axis Aligned Box
 
 };
 
-
+class Torus {
+private:
+    vec3 center;
+    double big_r;   // radius of the ring
+    double small_r; // thickness of the tube
+public:
+    Torus(vec3 center, double big_r, double small_r){
+        this->center = center;
+        this->big_r = big_r;
+        this->small_r = small_r;
+    }
+    double pointTorusDist(vec3 point){
+        vec3 p = point - center;
+        double q_x = sqrt(p.x()*p.x() + p.z()*p.z()) - big_r;
+        double q_y = p.y();
+        return sqrt(q_x*q_x + q_y*q_y) - small_r;
+    }
+};
 
 class World{
   private:
     std::vector<Sphere*> world_spheres;
     std::vector<Box*> world_boxes;
     std::vector<MandelBulb*> world_mandelbulbs;
+    std::vector<Torus*> world_toruses;
   public:
     void addSphere(Sphere* sphere){
         world_spheres.push_back(sphere);
@@ -115,6 +133,9 @@ class World{
     }
     void addMandelbulb(MandelBulb* mandelbulb){
         world_mandelbulbs.push_back(mandelbulb);
+    }
+    void addTorus(Torus* torus){
+        world_toruses.push_back(torus);
     }
     
 
@@ -138,6 +159,11 @@ class World{
             if(dist_to_bulb < min_dist)
                 min_dist = dist_to_bulb;
         }
+        for(Torus* torus : world_toruses){
+            double d = torus->pointTorusDist(point);
+            if(d < min_dist) min_dist = d;
+        }
+
         return min_dist;
     }
 

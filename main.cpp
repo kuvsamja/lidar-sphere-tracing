@@ -1,6 +1,6 @@
 // #include </opt/homebrew/include/SDL2/SDL.h>
 #include <SDL2/SDL.h>
-#include <iostream>
+#include <bits/stdc++.h>
 #include <vector>
 #include <cmath>
 #include "vec3.h"
@@ -12,11 +12,11 @@ int main(){
     World* world = new World();
 
     Camera camera(world);
-    camera.image_width = 1000;
+    camera.image_width = 500;
     camera.aspect_ratio = 4. / 3;
     camera.camera_center = vec3(0, 0, -1.5);
     camera.initialize();
-    double window_scale = 1;
+    double window_scale = 2;
 
     SDL_Renderer* renderer = NULL;
         
@@ -61,7 +61,8 @@ int main(){
     world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
     world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
     world->addSphere(new Sphere(vec3(60, -100, 0), 10));
-    world->addMandelbulb(new MandelBulb(vec3(0, -20, 0), 10, 8,  10, 10));
+    world->addTorus(new Torus(vec3(0, -20, 0), 5, 1.5));
+
 
 
     int running = 1;
@@ -90,7 +91,6 @@ int main(){
             camera.image_width * sizeof(uint32_t)
         );
         
-        std::clog << "a";
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
