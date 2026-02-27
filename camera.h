@@ -26,16 +26,17 @@ class Camera{
     double sphere_detect_size = 0.001;
 
     World* world;
+    WorldSet* world_set;
     
-    double speed = 1;
+    double speed = 6;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
     uint64_t max_lidar_points = 500000;
     int lidar_density = 1000; // bigger number, less density
 
-    Camera(World* world){
-        this->world = world;
+    Camera(WorldSet* world_set){
+        this->world_set = world_set;
     }
     // initialize the viewport
     void initialize(){
@@ -48,6 +49,9 @@ class Camera{
 
     }
 
+    void updateWorld() {
+        world = world_set->currentWorld(camera_center);
+    }
     // camera movement
     void input(const Uint8* keys){
         if(keys[SDL_SCANCODE_LEFT])

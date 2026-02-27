@@ -9,14 +9,19 @@
 #define PI 3.14159
 
 int main(){
-    World* world = new World();
+    WorldSet* rooms = new WorldSet;
+    World* world1 = new World();    Box *box1 = new Box(vec3(0, 0, 0), vec3(1000, 2000, 1000));
+    World* world2 = new World();    Box *box2 = new Box(vec3(2000, -0, 0), vec3(1000, 2000, 1000));
 
-    Camera camera(world);
+    rooms->addWorld(world1, box1);
+    rooms->addWorld(world2, box2);
+
+    Camera camera(rooms);
     camera.image_width = 500;
     camera.aspect_ratio = 4. / 3;
     camera.camera_center = vec3(0, 0, -1.5);
     camera.initialize();
-    double window_scale = 2;
+    double window_scale = 4;
 
     SDL_Renderer* renderer = NULL;
         
@@ -56,12 +61,15 @@ int main(){
 
     // todo: fix spheres not drawing
     
-    world->addSphere(new Sphere(vec3(0, 0, 10), 10));
-    world->addSphere(new Sphere(vec3(10, 0, 0), 10));
-    world->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
-    world->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
-    world->addSphere(new Sphere(vec3(60, -100, 0), 10));
-    world->addTorus(new Torus(vec3(0, -20, 0), 5, 1.5));
+    world1->addBox(new Box(vec3(0, 0, 0), vec3(1000, 1, 1000)));
+    world2->addBox(new Box(vec3(2000, 0, 0), vec3(1000, 1, 1000)));
+
+    // world1->addSphere(new Sphere(vec3(0, 0, 10), 10));
+    // world1->addSphere(new Sphere(vec3(10, 0, 0), 10));
+    // world1->   addBox(new Box(vec3(0, -2, 0), vec3(100, 2, 100)));
+    // world2->   addBox(new Box(vec3(50, -100, 0), vec3(2, 100, 100)));
+    // world2->addSphere(new Sphere(vec3(60, -100, 0), 10));
+    // world2->addTorus(new Torus(vec3(0, -20, 0), 50, 15));
 
 
 
@@ -73,10 +81,11 @@ int main(){
             }
         }
         
+        camera.updateWorld();
         // Clear screen with a color (e.g., black)
         // SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         // SDL_RenderClear(renderer);
-
+        
         memset(framebuffer, 0, camera.image_width * camera.image_height * sizeof(uint32_t));
 
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
@@ -91,6 +100,7 @@ int main(){
             camera.image_width * sizeof(uint32_t)
         );
         
+        std::cout << camera.camera_center.x() << ' ' << camera.camera_center.y() << ' ' << camera.camera_center.z() << std::endl;
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
@@ -99,7 +109,7 @@ int main(){
     
     
     
-    delete world;
+    delete world1;
     // delete framebuffer;
 
     SDL_DestroyRenderer(renderer);

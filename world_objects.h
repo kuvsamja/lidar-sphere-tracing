@@ -96,15 +96,22 @@ class Box{ // Axis Aligned Box
         return outside + inside;
     }
 
+    int containsPoint(const vec3& point) {
+        vec3 diff = abs(point - c);
+        return diff.x() <= half_size.x()
+            && diff.y() <= half_size.y()
+            && diff.z() <= half_size.z();
+    }
+
 
 };
 
 class Torus {
-private:
+  private:
     vec3 center;
     double big_r;   // radius of the ring
     double small_r; // thickness of the tube
-public:
+  public:
     Torus(vec3 center, double big_r, double small_r){
         this->center = center;
         this->big_r = big_r;
@@ -120,11 +127,13 @@ public:
 
 class World{
   private:
+
+  public:
     std::vector<Sphere*> world_spheres;
     std::vector<Box*> world_boxes;
     std::vector<MandelBulb*> world_mandelbulbs;
     std::vector<Torus*> world_toruses;
-  public:
+
     void addSphere(Sphere* sphere){
         world_spheres.push_back(sphere);
     }
@@ -138,6 +147,15 @@ class World{
         world_toruses.push_back(torus);
     }
     
+    World* operator+(World world1){
+        World* world_out = new World;
+        *world_out = *this;
+        for(auto box : world1.world_boxes) {
+            (*world_out).addBox(box);
+        }
+
+        return world_out;
+    }
 
     double minDist(vec3 point){
         double min_dist = 999;
@@ -169,3 +187,35 @@ class World{
 
 };
 
+
+
+class WorldSet{
+  private:
+    std::vector<World*> worlds;
+    std::vector<Box*> bounding_boxes;
+  public:
+    WorldSet(std::vector<World*> worlds, std::vector<Box*> bounding_boxes) {
+        this->worlds = worlds;
+        this->bounding_boxes = bounding_boxes;
+    }
+    WorldSet() {
+        this->worlds = {};
+        this->bounding_boxes = {};
+    }
+
+    void addWorld(World* world, Box* bounding_box) {
+        worlds.push_back(world);
+        bounding_boxes.push_back(bounding_box);
+    }
+
+    World* currentWorld(vec3 position) {
+        World* world_out = new World;
+        for(uint64_t i = 0ull; i < bounding_boxes.size(); i++) {
+            if (bounding_boxes[i]->containsPoint(position)) {
+                world_out = *world_out + *(worlds[i]);
+            }
+        }
+
+        return world_out;
+    }
+};
