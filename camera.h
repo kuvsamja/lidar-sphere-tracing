@@ -1,5 +1,6 @@
 // #include </opt/homebrew/include/SDL2/SDL.h>
 #include <SDL2/SDL.h>
+#include <omp.h>
 #include "vec3.h"
 #include "ray.h"
 #include "world_objects.h"
@@ -23,17 +24,17 @@ class Camera{
     double pixel_height;
     
     double max_spheres = 100;
-    double sphere_detect_size = 0.001;
+    double sphere_detect_size = 0.01;
 
-    World* world;
+    World* world = nullptr;
     WorldSet* world_set;
     
     double speed = 6;
     double sensitivity = 0.1;
 
     std::deque<vec3> lidar_points;
-    uint64_t max_lidar_points = 500000;
-    int lidar_density = 1000; // bigger number, less density
+    uint64_t max_lidar_points = 1400000;
+    int lidar_density = 2; // bigger number, less density
 
     Camera(WorldSet* world_set){
         this->world_set = world_set;
@@ -50,6 +51,7 @@ class Camera{
     }
 
     void updateWorld() {
+        delete world;
         world = world_set->currentWorld(camera_center);
     }
     // camera movement
@@ -132,63 +134,105 @@ class Camera{
 
     void renderLidar(uint32_t* framebuffer){
         // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0x1);
-        for(vec3 point:lidar_points){
-            vec3 v = point - camera_center;
-            
-            v = rotateY(v, -angle_x);
-            v = rotateX(v, -angle_y);
-
-            if (v.z() <= 1e-6) continue;
-
-            double x_img = (focal_length * v.x()) / v.z();
-            double y_img = (focal_length * v.y()) / v.z();
-
-            int screen_x = (int)(image_width  / 2 + x_img / pixel_width);
-            int screen_y = (int)(image_height / 2 + y_img / pixel_height);
-
-            if (screen_x < 0 || screen_x >= image_width || screen_y < 0 || screen_y >= image_height)
-                continue;
-            
-            // SDL_RenderDrawPoint(renderer, screen_x, screen_y);
-            framebuffer[screen_x + image_width*screen_y] = 0xFFFF0000;
-        }
-
-    }
-
-    void castLidarRay(){
-
-        vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
-        vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
-
-        for(int i = 0; i < image_width-0; i++){
-            for(int j = 0; j < image_height-0; j++){
-                if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
-                    continue;
-
-                vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
-
-                vec3 translated_pixel = pixel_loc - camera_center;
-
-                translated_pixel = rotateX(translated_pixel, angle_y);
-                translated_pixel = rotateY(translated_pixel, angle_x);
+        #pragma omp parallel
+        {
+            #pragma omp for schedule(dynamic, 64)
+            for(vec3 point:lidar_points){
+                vec3 v = point - camera_center;
                 
-                ray r(camera_center, translated_pixel);
+                v = rotateY(v, -angle_x);
+                v = rotateX(v, -angle_y);
 
-                vec3 lidar_point = sphereCast(r, *world);
+                if (v.z() <= 1e-6) continue;
 
-                if(lidar_point.is_null == 0){
-                    lidar_points.push_back(lidar_point);
-                    if((uint64_t)lidar_points.size() > max_lidar_points){
-                        lidar_points.pop_front();
-                    }
-                }
+                double x_img = (focal_length * v.x()) / v.z();
+                double y_img = (focal_length * v.y()) / v.z();
+
+                int screen_x = (int)(image_width  / 2 + x_img / pixel_width);
+                int screen_y = (int)(image_height / 2 + y_img / pixel_height);
+
+                if (screen_x < 0 || screen_x >= image_width || screen_y < 0 || screen_y >= image_height)
+                    continue;
+                
+                // SDL_RenderDrawPoint(renderer, screen_x, screen_y);
+                framebuffer[screen_x + image_width*screen_y] = 0xFFFF0000;
             }
         }
-        
-        
 
-        
     }
+
+    // void castLidarRay(){
+
+    //     vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width / 2, -viewport_height / 2, focal_length);
+    //     vec3 half_pixel_offset = vec3(pixel_width * 0.5, pixel_height * 0.5, 0);
+
+    //     for(int i = 0; i < image_width-0; i++){
+    //         for(int j = 0; j < image_height-0; j++){
+    //             if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
+    //                 continue;
+
+    //             vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
+
+    //             vec3 translated_pixel = pixel_loc - camera_center;
+
+    //             translated_pixel = rotateX(translated_pixel, angle_y);
+    //             translated_pixel = rotateY(translated_pixel, angle_x);
+                
+    //             ray r(camera_center, translated_pixel);
+
+    //             vec3 lidar_point = sphereCast(r, *world);
+
+    //             if(lidar_point.is_null == 0){
+    //                 lidar_points.push_back(lidar_point);
+    //                 if((uint64_t)lidar_points.size() > max_lidar_points){
+    //                     lidar_points.pop_front();
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    void castLidarRay(){
+        vec3 pixel_00_not_rotated = camera_center + vec3(-viewport_width/2, -viewport_height/2, focal_length);
+        vec3 half_pixel_offset = vec3(pixel_width*0.5, pixel_height*0.5, 0);
+
+        std::vector<vec3> local_hits;
+
+        #pragma omp parallel
+        {
+            std::vector<vec3> thread_hits;
+
+            #pragma omp for schedule(dynamic, 8)
+            for(int i = 0; i < image_width; i++){
+                for(int j = 0; j < image_height; j++){
+                    if((int)((double)rand() / RAND_MAX * lidar_density) != 1)
+                        continue;
+
+                    vec3 pixel_loc = pixel_00_not_rotated + vec3(i*pixel_width, j*pixel_height, 0) + half_pixel_offset;
+                    vec3 translated_pixel = pixel_loc - camera_center;
+                    translated_pixel = rotateX(translated_pixel, angle_y);
+                    translated_pixel = rotateY(translated_pixel, angle_x);
+
+                    ray r(camera_center, translated_pixel);
+                    vec3 lidar_point = sphereCast(r, *world);
+
+                    if(lidar_point.is_null == 0)
+                        thread_hits.push_back(lidar_point);
+                }
+            }
+
+            #pragma omp critical
+            local_hits.insert(local_hits.end(), thread_hits.begin(), thread_hits.end());
+        }
+
+        for(auto& p : local_hits){
+            lidar_points.push_back(p);
+            if((uint64_t)lidar_points.size() > max_lidar_points)
+                lidar_points.pop_front();
+        }
+    }
+    
+    
     void renderPixel(uint32_t* framebuffer, int x, int y, vec3 pixel_00_not_rotated, vec3 half_pixel_offset){
         // calculate pixel locations in 3d space
         vec3 pixel_loc = pixel_00_not_rotated + vec3(x*pixel_width, y*pixel_height, 0) + half_pixel_offset;
@@ -245,7 +289,7 @@ class Camera{
     }
 
 
-    vec3 sphereCast(ray r, World world){
+    vec3 sphereCast(ray r, World& world){
         double length = 0;
         
         length = world.minDist(r.origin());

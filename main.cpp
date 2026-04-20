@@ -9,19 +9,36 @@
 #define PI 3.14159
 
 int main(){
-    WorldSet* rooms = new WorldSet;
-    World* world1 = new World();    Box *box1 = new Box(vec3(0, 0, 0), vec3(1000, 2000, 1000));
-    World* world2 = new World();    Box *box2 = new Box(vec3(2000, -0, 0), vec3(1000, 2000, 1000));
+    World* world = new World();
+    Box* box = new Box(vec3(0, 0, 0), vec3(9999, 9999, 9999));
 
-    rooms->addWorld(world1, box1);
-    rooms->addWorld(world2, box2);
+    // single small platform
+    world->addBox(new Box(vec3(0, 0, 0), vec3(150, 5, 30)));
+
+    // sphere
+    world->addSphere(new Sphere(vec3(-100, -30, 0), 20));
+
+    // torus
+    world->addTorus(new Torus(vec3(-40, -25, 0), 18, 5));
+
+    // mandelbulb
+    world->addMandelbulb(new MandelBulb(vec3(20, -35, 0), 25, 8, 2, 10));
+
+    // tall thin box (obelisk)
+    world->addBox(new Box(vec3(80, -50, 0), vec3(8, 45, 8)));
+
+    // wide flat box (stepping stone)
+    world->addBox(new Box(vec3(130, -15, 0), vec3(20, 10, 15)));
+
+    WorldSet* rooms = new WorldSet;
+    rooms->addWorld(world, box);
 
     Camera camera(rooms);
-    camera.image_width = 500;
+    camera.image_width = 300;
     camera.aspect_ratio = 4. / 3;
-    camera.camera_center = vec3(0, 0, -1.5);
+    camera.camera_center = vec3(0, -60, -200); // looking at the platform from the front
     camera.initialize();
-    double window_scale = 4;
+    double window_scale = 3;
 
     SDL_Renderer* renderer = NULL;
         
@@ -61,8 +78,10 @@ int main(){
 
     // todo: fix spheres not drawing
     
-    world1->addBox(new Box(vec3(0, 0, 0), vec3(1000, 1, 1000)));
-    world2->addBox(new Box(vec3(2000, 0, 0), vec3(1000, 1, 1000)));
+    // world1->addBox(new Box(vec3(0, 0, 0), vec3(1000, 1, 1000)));
+    // world2->addBox(new Box(vec3(2000, 0, 0), vec3(1000, 1, 1000)));
+    // world1->addBox(new Box(vec3(0, -200, 0), vec3(1000, 1, 1000)));
+    // world2->addBox(new Box(vec3(2000, -200, 0), vec3(1000, 1, 1000)));
 
     // world1->addSphere(new Sphere(vec3(0, 0, 10), 10));
     // world1->addSphere(new Sphere(vec3(10, 0, 0), 10));
@@ -73,8 +92,10 @@ int main(){
 
 
 
+
     int running = 1;
     while (running) {
+        uint64_t now = SDL_GetTicks64();
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT){
                 running = 0;
@@ -100,16 +121,19 @@ int main(){
             camera.image_width * sizeof(uint32_t)
         );
         
-        std::cout << camera.camera_center.x() << ' ' << camera.camera_center.y() << ' ' << camera.camera_center.z() << std::endl;
+        std::cout << camera.lidar_points.size() << ' ';
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
-        SDL_Delay(16);
+
+        uint64_t frame_time = SDL_GetTicks64() - now;
+        std::cout << frame_time << std::endl;
+        if(frame_time < 16) SDL_Delay(16 - frame_time);
     }
     
     
     
-    delete world1;
+    // delete world1;
     // delete framebuffer;
 
     SDL_DestroyRenderer(renderer);

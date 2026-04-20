@@ -4,7 +4,7 @@
 CXX := g++
 
 # set the compiler flags
-CXXFLAGS := `sdl2-config --libs --cxxflags` -ggdb3 -O0 -Wall -lSDL2_image -lm -lSDL2_gfx
+CXXFLAGS := `sdl2-config --libs --cxxflags` -ggdb3 -O0 -Wall -lSDL2_image -fopenmp -lm -lSDL2_gfx
 # add header files here
 HDRS :=
 

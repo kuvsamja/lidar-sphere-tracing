@@ -146,15 +146,15 @@ class World{
     void addTorus(Torus* torus){
         world_toruses.push_back(torus);
     }
-    
-    World* operator+(World world1){
+    World* operator+(World& world1){
         World* world_out = new World;
         *world_out = *this;
-        for(auto box : world1.world_boxes) {
-            (*world_out).addBox(box);
-        }
-
+        for(auto s : world1.world_spheres)    world_out->addSphere(s);
+        for(auto b : world1.world_boxes)      world_out->addBox(b);
+        for(auto m : world1.world_mandelbulbs) world_out->addMandelbulb(m);
+        for(auto t : world1.world_toruses)    world_out->addTorus(t);
         return world_out;
+
     }
 
     double minDist(vec3 point){
