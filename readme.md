@@ -21,4 +21,8 @@ and to run:
 ```
 
 ### Windows:
-I dont know
+ Install WSL (Windows Subsystem for Linux)
+- Folow instructions from: https://learn.microsoft.com/en-us/windows/wsl/install
+- When instaled connect VS Code to your WSL (Please use VS Code)
+- Then do the same as for linux
+ 
