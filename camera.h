@@ -1,5 +1,8 @@
-// #include </opt/homebrew/include/SDL2/SDL.h>
-#include <SDL2/SDL.h>
+#ifdef __APPLE__
+    #include </opt/homebrew/include/SDL2/SDL.h>
+#else
+    #include <SDL2/SDL.h>
+#endif
 #include <omp.h>
 #include "vec3.h"
 #include "ray.h"

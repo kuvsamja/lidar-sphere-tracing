@@ -1,41 +1,34 @@
-# A simple Makefile for compiling small SDL projects
 
-# set the compiler
-CXX := g++
+UNAME_S := $(shell uname -s)
 
-# set the compiler flags
-CXXFLAGS := `sdl2-config --libs --cxxflags` -ggdb3 -O0 -Wall -lSDL2_image -fopenmp -lm -lSDL2_gfx
-# add header files here
-HDRS :=
+CXX = g++
 
-# add source files here
-SRCS := main.cpp
+CXXFLAGS = `sdl2-config --cflags` -Wall -ggdb3 -O0
+LDFLAGS  = `sdl2-config --libs` -lSDL2_image -lSDL2_gfx -lm
 
-# generate names of object files
-OBJS := $(SRCS:.cpp=.o)
+ifeq ($(UNAME_S), Darwin)
 
-# name of executable
-EXEC := main
+    BREW_PREFIX := $(shell brew --prefix 2>/dev/null || echo /opt/homebrew)
+    CXXFLAGS += -Xpreprocessor -fopenmp -I$(BREW_PREFIX)/opt/libomp/include
+    LDFLAGS  += -L$(BREW_PREFIX)/opt/libomp/lib -lomp
+else ifeq ($(UNAME_S), Linux)
 
-# default recipe
-all: $(EXEC)
+    CXXFLAGS += -fopenmp
+    LDFLAGS  += -fopenmp
+endif
 
-showfont: showfont.cpp Makefile
-	$(CXX) -o $@ $@.cpp $(CXXFLAGS) $(LIBS)
+TARGET = main
+OBJS   = main.o
 
-glfont: glfont.cpp Makefile
-	$(CXX) -o $@ $@.cpp $(CXXFLAGS) $(LIBS)
+all: $(TARGET)
 
-# recipe for building the final executable
-$(EXEC): $(OBJS) $(HDRS) Makefile
-	$(CXX) -o $@ $(OBJS) $(CXXFLAGS)
+$(TARGET): $(OBJS)
+	$(CXX) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# recipe for building object files
-$(OBJS): $(@:.o=.cpp) $(HDRS) Makefile
-	$(CXX) -o $@ $(@:.o=.cpp) -c $(CXXFLAGS)
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# recipe to clean the workspace
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(TARGET) $(OBJS)
 
 .PHONY: all clean

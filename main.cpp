@@ -1,8 +1,9 @@
-// #include </opt/homebrew/include/SDL2/SDL.h>
-#include <SDL2/SDL.h>
-#include <bits/stdc++.h>
-#include <vector>
-#include <cmath>
+#ifdef __APPLE__
+    #include </opt/homebrew/include/SDL2/SDL.h>
+#else
+    #include <SDL2/SDL.h>
+#endif
+
 #include "vec3.h"
 #include "camera.h"
 
@@ -34,11 +35,11 @@ int main(){
     rooms->addWorld(world, box);
 
     Camera camera(rooms);
-    camera.image_width = 300;
+    camera.image_width = 1000;
     camera.aspect_ratio = 4. / 3;
     camera.camera_center = vec3(0, -60, -200); // looking at the platform from the front
     camera.initialize();
-    double window_scale = 3;
+    double window_scale = 1;
 
     SDL_Renderer* renderer = NULL;
         
@@ -121,13 +122,13 @@ int main(){
             camera.image_width * sizeof(uint32_t)
         );
         
-        std::cout << camera.lidar_points.size() << ' ';
+        // std::cout << camera.lidar_points.size() << ' ';
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
 
         uint64_t frame_time = SDL_GetTicks64() - now;
-        std::cout << frame_time << std::endl;
+        // std::cout << frame_time << std::endl;
         if(frame_time < 16) SDL_Delay(16 - frame_time);
     }
     
